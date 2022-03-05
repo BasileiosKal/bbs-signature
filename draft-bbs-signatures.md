@@ -556,6 +556,58 @@ Procedure:
 12. return VALID
 ```
 
+### CreateGenerators
+
+The `CreateGenerators` operation defines how to create a set of generators that form a part of the public parameters used by the BBS Signature scheme to accomplish operations such as sign, verify, spkgen and spkverify. The `CreateGenerators` procedure calls the `getValidGenerator` procedure that will return a valid generator. See below for details.
+
+*Note* The scope in which the seed used below is determined, is still an active conversation in the working group see (#ciphersuites) for the current method being used.
+
+```
+generators = CreateGenerators(dst, seed, length);
+Inputs:
+- dst, octet string - Domain Separation Tag
+- seed, octet string
+- length, unsigned integer - Number of generators to create from the seed and dst
+
+Outputs:
+- generators, an array of generators
+
+Procedure:
+
+1. h = XOF(seed)
+
+2. for i in 0 to length: 
+
+3.     generator_i = getValidGenerator(h, (generator_1, ..., generator_i-1))
+
+4. return (generator_1, ..., generator_n)
+```
+
+A valid generator is one that is not the identity element of G1 (denoted here as `Identity_G1`), that has not been already created by the `CreateGenerators` procedure and that is not `P1`.
+
+```
+generator = getValidGenerator(h, generators)
+Inputs:
+- h, the XOF from which to read the input message of hash_to_curve_g1
+- generators, an array of generators. The generators already produced 
+              from the CreateGenerators procedure.
+
+Outputs:
+- generator, a valid generator
+
+Procedure:
+
+1. generator = Identity_G1
+
+2. While (generator == Identity_G1 or generator == P1):
+
+3.     candidate = hash_to_curve_g1(h.read(64), dst)
+
+4.     if candidate not in generators: generator = candidate
+
+5. return generator
+```
+
 # Security Considerations
 
 ## Validating public keys
