@@ -514,6 +514,7 @@ Inputs:
 Parameters:
 
 - P1, fixed point of G1, defined by the ciphersuite.
+- Q_r, fixed point of G1, defined by the ciphersuite.
 
 Definitions:
 
@@ -543,30 +544,38 @@ Deserialization:
 
 Procedure:
 
-1.  (Q, MsgGenerators) = create_generators(L+2)
+1.  (Q, MsgGenerators) = create_generators(L+1)
 2.  (H_1, ..., H_L) = MsgGenerators
 3.  (H_j1, ..., H_jU) = (MsgGenerators[j1], ..., MsgGenerators[jU])
 
 4.  domain = calculate_domain(PK, Q, (H_1, ..., H_L), header)
 5.  if domain is INVALID, return INVALID
-6.  random_scalars = calculate_random_scalars(5+U)
-7.  (r1, r2, e~, r2~, r3~, m~_j1, ..., m~_jU) = random_scalars
+
+6.  random_scalars = calculate_random_scalars(6+U)
+7.  (r1, r2, e~, r2~, r3~, s~, m~_j1, ..., m~_jU) = random_scalars
+
 8.  B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
 9.  r3 = r1 ^ -1 mod r
+
 10. A' = A * r1
 11. Abar = A' * (-e) + B * r1
-12. D = B * r1 + Q * r2
-14. C1 = A' * e~ + Q * r2~
-15. C2 = D * (-r3~) + H_j1 * m~_j1 + ... + H_jU * m~_jU
-16. c = calculate_challenge(A', Abar, D, C1, C2, (i1, ..., iR),
+12. D = B * r1 + Q_r * r2
+
+13. C1 = A' * e~ + Q_r * r2~
+14. C2 = D * (-r3~) + Q_r * s~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
+
+15. c = calculate_challenge(A', Abar, D, C1, C2, (i1, ..., iR),
                                      (msg_i1, ..., msg_iR), domain, ph)
-17. if c is INVALID, return INVALID
-18. e^ = c * e + e~ mod r
-19. r2^ = c * r2 + r2~ mod r
-20. r3^ = c * r3 + r3~ mod r
-22. for j in (j1, ..., jU): m^_j = c * msg_j + m~_j mod r
-23. proof = (A', Abar, D, c, e^, r2^, r3^, (m^_j1, ..., m^_jU))
-24. return proof_to_octets(proof)
+16. if c is INVALID, return INVALID
+
+17. e^ = c * e + e~ mod r
+18. r2^ = c * r2 + r2~ mod r
+19. r3^ = c * r3 + r3~ mod r
+20. s^ = c * r2 * r3 + s~ mod r
+21. for j in (j1, ..., jU): m^_j = c * msg_j + m~_j mod r
+
+22. proof = (A', Abar, D, c, e^, r2^, r3^, s^, (m^_j1, ..., m^_jU))
+23. return proof_to_octets(proof)
 ```
 
 ### ProofVerify
@@ -601,6 +610,7 @@ Inputs:
 Parameters:
 
 - P1, fixed point of G1, defined by the ciphersuite.
+- Q_r, fixed point of G1, defined by the ciphersuite.
 
 Definitions:
 
@@ -644,9 +654,9 @@ Procedure:
 
 5.  domain = calculate_domain(PK, Q, (H_1, ..., H_L), header)
 6.  if domain is INVALID, return INVALID
-7.  C1 = (Abar - D) * c + A' * e^ + Q_1 * r2^
-8.  T = P1 + Q_2 * domain + H_i1 * msg_i1 + ... + H_iR * msg_iR
-9.  C2 = T * c - D * r3^ + Q_1 * s^ + H_j1 * m^_j1 + ... + H_jU * m^_jU
+7.  C1 = (Abar - D) * c + A' * e^ + Q_r * r2^
+8.  T = P1 + Q * domain + H_i1 * msg_i1 + ... + H_iR * msg_iR
+9.  C2 = T * c - D * r3^ + Q_r * s^ + H_j1 * m^_j1 + ... + H_jU * m^_jU
 10. cv = calculate_challenge(A', Abar, D, C1, C2, (i1, ..., iR),
                                       (msg_i1, ..., msg_iR), domain, ph)
 11. if cv is INVALID, return INVALID
@@ -995,8 +1005,8 @@ Outputs:
 
 Procedure:
 
-1. (A, e, s) = signature
-2. return serialize((A, e, s))
+1. (A, e) = signature
+2. return serialize((A, e))
 ```
 
 ### OctetsToSignature
@@ -1018,21 +1028,20 @@ signature, a signature in the form (A, e, s), where A is a point in G1
 
 Procedure:
 
-1.  expected_len = octet_point_length + 2 * octet_scalar_length
+1.  expected_len = octet_point_length + octet_scalar_length
 2.  if length(signature_octets) != expected_len, return INVALID
+
 3.  A_octets = signature_octets[0..(octet_point_length - 1)]
 4.  A = octets_to_point_g1(A_octets)
 5.  if A is INVALID, return INVALID
 6.  if A == Identity_G1, return INVALID
+
 7.  index = octet_point_length
 8.  end_index = index + octet_scalar_length - 1
 9.  e = OS2IP(signature_octets[index..end_index])
 10. if e = 0 OR e >= r, return INVALID
-11. index += octet_scalar_length
-12. end_index = index + octet_scalar_length - 1
-13. s = OS2IP(signature_octets[index..end_index])
-14. if s = 0 OR s >= r, return INVALID
-15. return (A, e, s)
+
+15. return (A, e)
 ```
 
 ### ProofToOctets
@@ -1042,7 +1051,7 @@ This operation describes how to encode a proof, as computed at step 25 in [Proof
 The inputted proof value must consist of the following components, in that order:
 
 1. Three (3) valid points of the G1 subgroup, different from the identity point of G1 (i.e., `A', Abar, D`, in ProofGen)
-2. Five (5) integers representing scalars in the range of 1 to r-1 inclusive (i.e., `c, e^, r2^, r3^, s^`, in ProofGen).
+2. Three (5) integers representing scalars in the range of 1 to r-1 inclusive (i.e., `c, e^, r2^, r3^, s^`, in ProofGen).
 3. A number of integers representing scalars in the range of 1 to r-1 inclusive, corresponding to the undisclosed from the proof messages (i.e., `m^_j1, ..., m^_jU`, in ProofGen, where U the number of undisclosed messages).
 
 ```
@@ -1292,6 +1301,10 @@ Note that these two ciphersuites differ only in the hash function (SHAKE-256 vs 
     ```
     P1 = {{ $generatorFixtures.bls12-381-shake-256.generators.BP }}
     ```
+- Q_r: The G1 point returned from the `create_generators` procedure, with generator\_seed = "BBS\_BLS12381G1\_XOF:SHAKE-256\_SSWU\_RO\_QR\_GENERATOR\_POINT\_SEED", More specifically,
+```
+TBD
+```
 
 **Serialization functions**:
 
@@ -1326,6 +1339,10 @@ Note that these two ciphersuites differ only in the hash function (SHAKE-256 vs 
     ```
     P1 = {{ $generatorFixtures.bls12-381-sha-256.generators.BP }}
     ```
+- Q_r: The G1 point returned from the `create_generators` procedure, with generator\_seed = "BBS\_BLS12381G1\_XMD:SHA-256\_SSWU\_RO\_QR\_GENERATOR\_POINT\_SEED", More specifically,
+```
+TBD
+```
 
 **Serialization functions**:
 
