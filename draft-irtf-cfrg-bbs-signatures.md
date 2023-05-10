@@ -538,33 +538,25 @@ Procedure:
 1.  (Q, MsgGenerators) = create_generators(L+1)
 2.  (H_1, ..., H_L) = MsgGenerators
 3.  (H_j1, ..., H_jU) = (MsgGenerators[j1], ..., MsgGenerators[jU])
-
 4.  domain = calculate_domain(PK, Q, (H_1, ..., H_L), header)
 5.  if domain is INVALID, return INVALID
-
 6.  random_scalars = calculate_random_scalars(6+U)
 7.  (r1, r2, e~, r2~, r3~, s~, m~_j1, ..., m~_jU) = random_scalars
-
 8.  B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
 9.  r3 = r1 ^ -1 mod r
-
 10. A' = A * r1
 11. Abar = A' * (-e) + B * r1
 12. D = B * r1 + Q_r * r2
-
 13. C1 = A' * e~ + Q_r * r2~
 14. C2 = D * (-r3~) + Q_r * s~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
-
 15. c = calculate_challenge(A', Abar, D, C1, C2, (i1, ..., iR),
                                      (msg_i1, ..., msg_iR), domain, ph)
 16. if c is INVALID, return INVALID
-
 17. e^ = c * e + e~ mod r
 18. r2^ = c * r2 + r2~ mod r
 19. r3^ = c * r3 + r3~ mod r
 20. s^ = c * r2 * r3 + s~ mod r
 21. for j in (j1, ..., jU): m^_j = c * msg_j + m~_j mod r
-
 22. proof = (A', Abar, D, c, e^, r2^, r3^, s^, (m^_j1, ..., m^_jU))
 23. return proof_to_octets(proof)
 ```
