@@ -7,7 +7,7 @@ none                                                           M. Lodder
                                                                T. Looker
                                                                    Mattr
                                                             A. Whitehead
-                                                          6 October 2022
+                                                             10 May 2023
 
 
          Blind Signatures extension of the BBS Signature Scheme
@@ -334,9 +334,9 @@ Procedure:
    [I-D.irtf-cfrg-pairing-friendly-curves]
               Sakemi, Y., Kobayashi, T., Saito, T., and R. S. Wahby,
               "Pairing-Friendly Curves", Work in Progress, Internet-
-              Draft, draft-irtf-cfrg-pairing-friendly-curves-10, 30 July
-              2021, <https://www.ietf.org/archive/id/draft-irtf-cfrg-
-              pairing-friendly-curves-10.txt>.
+              Draft, draft-irtf-cfrg-pairing-friendly-curves-11, 6
+              November 2022, <https://datatracker.ietf.org/doc/html/
+              draft-irtf-cfrg-pairing-friendly-curves-11>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -348,7 +348,7 @@ Procedure:
    [BBS-DRAFT]
               Lodder, M., Looker, T., Whitehead, A., and V. Kalos, "The
               BBS Signature Scheme", <https://identity.foundation/bbs-
-              signature/draft-looker-cfrg-bbs-signatures.html>.
+              signature/draft-irtf-cfrg-bbs-signatures.html>.
 
 Appendix A.  Appendix
 
