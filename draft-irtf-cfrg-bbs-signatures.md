@@ -386,18 +386,11 @@ Inputs:
 Parameters:
 
 - P1, fixed point of G1, defined by the ciphersuite.
-- expand_message, the expand_message operation defined by the suite
-                  specified by the hash_to_curve_suite parameter.
-- octet_scalar_length, non-negative integer. The length of a scalar
-                       octet representation, defined by the ciphersuite.
 
 Definitions:
 
 - L, is the non-negative integer representing the number of messages to
      be signed.
-- expand_dst, an octet string representing the domain separation tag:
-              utf8(ciphersuite_id || "SIG_DET_DST_"), where
-              ciphersuite_id is defined by the ciphersuite.
 
 Outputs:
 
@@ -416,14 +409,12 @@ Procedure:
 
 4.  e_octs = serialize((SK, domain, msg_1, ..., msg_L))
 5.  if e_octs is INVALID, return INVALID
-6.  e_expand = expand_message(e_octs, expand_dst, octet_scalar_length)
-7.  if e_expand is INVALID, return INVALID
-8.  e = hash_to_scalar(e_expand)
-9.  if e is INVALID, return INVALID
+6.  e = hash_to_scalar(e_octs)
+7.  if e is INVALID, return INVALID
 
-10. B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
-11. A = B * (1 / (SK + e))
-12. return signature_to_octets(A, e)
+8.  B = P1 + Q * domain + H_1 * msg_1 + ... + H_L * msg_L
+9.  A = B * (1 / (SK + e))
+10. return signature_to_octets(A, e)
 ```
 
 **Note** When computing step 12 of the above procedure there is an extremely small probability (around `2^(-r)`) that the condition `(SK + e) = 0 mod r` will be met. How implementations evaluate the inverse of the scalar value `0` may vary, with some returning an error and others returning `0` as a result. If the returned value from the inverse operation `1/(SK + e)` does evaluate to `0` the value of `A` will equal `Identity_G1` thus an invalid signature. Implementations MAY elect to check `(SK + e) = 0 mod r` prior to step 9, and or `A != Identity_G1` after step 9 to prevent the production of invalid signatures.
