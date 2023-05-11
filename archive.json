@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-05-09T00:50:46.062560+00:00",
+  "timestamp": "2023-05-11T00:50:12.237043+00:00",
   "repo": "BasileiosKal/bbs-signature",
   "labels": [
     {
@@ -50,5 +50,32 @@
     }
   ],
   "issues": [],
-  "pulls": []
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOGZJX0c5QNnBr",
+      "title": "Update on latest academic paper",
+      "url": "https://github.com/BasileiosKal/bbs-signature/pull/1",
+      "state": "OPEN",
+      "author": "BasileiosKal",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2023-05-10T16:36:34Z",
+      "updatedAt": "2023-05-10T16:36:34Z",
+      "baseRepository": "BasileiosKal/bbs-signature",
+      "baseRefName": "main",
+      "baseRefOid": "67a93def3b5d077b26457333b75d50ec3222b5e0",
+      "headRepository": "BasileiosKal/bbs-signature",
+      "headRefName": "vasilis/bbs-update",
+      "headRefOid": "f3cf7aa95fc3e13964035c313ab2baa15b16c73b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    }
+  ]
 }
