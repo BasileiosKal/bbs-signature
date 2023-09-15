@@ -182,6 +182,9 @@ range(a, b)
 length(input)
 : Takes as input either an array or an octet string. If the input is an array, returns the number of elements of the array. If the input is an octet string, returns the number of bytes of the inputted octet string.
 
+push(list, element)
+: On input a (possibly empty) array and an element, it adds that element to the end of the array (note, this operation does not return the new array, rather it updates the inputted array "in place").
+
 Terms specific to pairing-friendly elliptic curves that are relevant to this document are restated below, originally defined in [@!I-D.irtf-cfrg-pairing-friendly-curves].
 
 E1, E2
@@ -859,7 +862,7 @@ api_id = ciphersuite_id || CREATE_GENERATORS_ID || MAP_TO_SCALAR_ID || ADD_INFO
 
 Where `ciphersuite_id` is defined by the ciphersuite, `CREATE_GENERATORS_ID` is the unique IDs of the operation that creates the generators, `MAP_TO_SCALAR_ID` is the unique ID of the operation that maps the messages to scalars and the `ADD_INFO` value is an optional octet string indicating any additional information used to uniquely qualify the Interface. When `ADD_INFO` is present, it MUST only contain ASCII encoded characters with codes between 0x21 and 0x7e (inclusive) and MUST end with an underscore (ASCII code: 0x5f), other than the last character the string MUST not contain any other underscores (ASCII code: 0x5f). The `api_id` value, MUST be used by all subroutines an Interface calls, to ensure proper domain separation.
 
-Interfaces are meant to make it easier to use BBS Signature as part of other protocols with different requirements (for example, different types of input messages), or to extend BBS Signatures with additional functionality. Documents defining new BBS Interfaces, are REQUIRED to include a detailed and peer reviewed analyses, showcasing that, under reasonable cryptographic assumptions, the documented scheme is secure under the required security definitions and threat model of each protocol. In other words, Interfaces MUST be treated like Ciphersuites ((#ciphersuites)), in the sense that it is RECOMMENDED that applications will avoid creating their own, proprietary Interfaces.
+Interfaces are meant to make it easier to use BBS Signature as part of other protocols with different requirements (for example, different types of input messages), or to extend BBS Signatures with additional functionality. New BBS Interfaces should undergo a detailed and peer reviewed security analyses, showcasing that, under reasonable cryptographic assumptions, the documented scheme is secure under the required security definitions and threat model of each protocol. In other words, Interfaces should be treated like Ciphersuites ((#ciphersuites)), in the sense that it is recommended for applications to avoid creating their own, proprietary Interfaces, both for interoperability and security reasons.
 
 # Utility Operations
 
@@ -995,20 +998,24 @@ MAP_TO_SCALAR_ID = "HM2S_"
 
 #### Define a new Map to Scalar
 
-The most important property that a new operation that will map a vector of messages to a vector of scalars, MUST have is that each message should be mapped to a scalar independently from all
-the other messages. More specifically, the following MUST hold,
+The most important property that a new operation to map the messages to scalars must have, is that each message should be mapped to a scalar independently from all other messages. More specifically, the following MUST hold,
 
 ```
 For every set of messages and avery message msg',
-if C1 = messages_to_scalars(messages.push(msg')),
-and msg_prime_scalar = messages_to_scalars((msg')),
-and C2 = messages_to_scalars(messages).push(msg_prime_scalar),
-it will always hold that C1 == C2.
+
+Set C1 = messages_to_scalars(messages)
+and then do push(C1, messages_to_scalars((msg'))).
+
+Then do push(messages, msg')
+and then set C2 = messages_to_scalars(messages).
+
+It must always hold that C1 == C2.
 ```
+
+On a high level, the above property enforces that a message should be mapped to the same scalar value both when it is mapped on its own, or as part of any set of messages. Note, this also implies that the returned scalars are independent. More specifically, knowledge of any subset of the returned scalars should not reveal any information about the scalars not in that subset.
 
 Additionally, the new operation MUST comfort to the following requirements:
 
-- The returned scalars MUST be independent. More specifically, knowledge of any subset of the returned scalars MUST NOT reveal any information about the scalars not in that subset.
 - Unique inputs MUST result to unique outputs.
 - If the inputted vector of messages does not include any duplicates, the outputted scalars MUST NOT include any duplicates either.
 - It MUST be deterministic and constant time on the length of the inputted vector of messages.
